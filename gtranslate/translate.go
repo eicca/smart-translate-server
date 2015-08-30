@@ -5,17 +5,14 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+
+	t "github.com/eicca/translate-server/translation"
 )
 
-// TranslateReq contains translation request information.
-type TranslateReq struct {
-	Source string
-	Target string
-	Query  string
-}
-
-// Locale is a two letters ISO locale.
-type Locale string
+const (
+	gtranslateWebURL = "https://translate.google.com"
+	originName       = "google"
+)
 
 type apiTranslateResp struct {
 	Data struct {
@@ -26,29 +23,64 @@ type apiTranslateResp struct {
 }
 
 // Translate translates a text from source locale to target locale.
-func Translate(req TranslateReq) (string, error) {
+func Translate(req t.Req) (t.Translation, error) {
 	apiQuery, err := makeTranslateQuery(req)
 	if err != nil {
-		return "", err
+		return t.Translation{}, err
 	}
 
 	data, err := get(apiQuery)
 	if err != nil {
-		return "", err
+		return t.Translation{}, err
 	}
 
-	return parseTranslateResp(data)
+	translatedText, err := parseTranslateResp(data)
+	if err != nil {
+		return t.Translation{}, err
+	}
+
+	return translation(req, translatedText), nil
 }
 
-func makeTranslateQuery(req TranslateReq) (*url.URL, error) {
+func translation(req t.Req, translatedText string) t.Translation {
+	translationWebURL := fmt.Sprintf(
+		"%s/#%s/%s/%s",
+		gtranslateWebURL, req.Source, req.Target, req.Query,
+	)
+
+	// gtranslate returns always only one meaning.
+	meaning := meaning(req, translatedText)
+
+	return t.Translation{
+		Target:   req.Target,
+		WebURL:   translationWebURL,
+		Meanings: []t.Meaning{meaning},
+	}
+}
+
+func meaning(req t.Req, translatedText string) t.Meaning {
+	// meaningWebURL is a reverse of translation.
+	meaningWebURL := fmt.Sprintf(
+		"%s/#%s/%s/%s",
+		gtranslateWebURL, req.Target, req.Source, translatedText,
+	)
+
+	return t.Meaning{
+		TranslatedText: translatedText,
+		OriginName:     originName,
+		WebURL:         meaningWebURL,
+	}
+}
+
+func makeTranslateQuery(req t.Req) (*url.URL, error) {
 	u, err := url.Parse(translateURL)
 	if err != nil {
 		return nil, err
 	}
 
 	q := u.Query()
-	q.Set("source", req.Source)
-	q.Set("target", req.Target)
+	q.Set("source", string(req.Source))
+	q.Set("target", string(req.Target))
 	q.Set("q", req.Query)
 	q.Set("key", os.Getenv("GOOGLE_API_KEY"))
 	u.RawQuery = q.Encode()

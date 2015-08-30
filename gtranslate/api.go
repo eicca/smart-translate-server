@@ -8,7 +8,6 @@ import (
 
 const (
 	translateURL = "https://www.googleapis.com/language/translate/v2"
-	webURL       = "https://translate.google.com/#"
 )
 
 func get(u *url.URL) ([]byte, error) {

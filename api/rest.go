@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 
 	"github.com/ant0ine/go-json-rest/rest"
 )
@@ -34,16 +35,34 @@ func NewRest() *rest.Api {
 
 func getTranslations(w rest.ResponseWriter, r *rest.Request) {
 	required := []string{"from", "dest-locales", "phrase"}
-	query := r.URL.Query()
-
-	for _, param := range required {
-		if len(query[param]) < 1 {
-			rest.Error((w), fmt.Sprintf("%s parameter is required", param), 400)
-			return
-		}
+	params, err := getParams(r, required)
+	if err != nil {
+		rest.Error((w), err.Error(), 400)
+		return
 	}
+
+	fmt.Println(params)
 }
 
 func getSuggestions(w rest.ResponseWriter, r *rest.Request) {
-	log.Println(r)
+	required := []string{"phrase", "locales", "fallback-locale"}
+	params, err := getParams(r, required)
+	if err != nil {
+		rest.Error((w), err.Error(), 400)
+		return
+	}
+
+	fmt.Println(params)
+}
+
+func getParams(r *rest.Request, params []string) (url.Values, error) {
+	query := r.URL.Query()
+
+	for _, param := range params {
+		if len(query[param]) < 1 {
+			return nil, fmt.Errorf("%s parameter is required", param)
+		}
+	}
+
+	return query, nil
 }

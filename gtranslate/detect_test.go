@@ -2,31 +2,33 @@ package gtranslate
 
 import (
 	"testing"
+
+	"github.com/eicca/translate-server/common"
 )
 
 var detectTests = []struct {
 	in  DetectReq
-	out Locale
+	out common.Locale
 }{
 	{
 		DetectReq{
-			Locales:        []Locale{"en", "de", "ru"},
+			Locales:        []common.Locale{"en", "de", "ru"},
 			FallbackLocale: "de",
 			Query:          "hallo",
-		}, Locale("de"),
+		}, common.Locale("de"),
 	},
 	{
 		DetectReq{
-			Locales:        []Locale{"en", "ru"},
+			Locales:        []common.Locale{"en", "ru"},
 			FallbackLocale: "ru",
 			Query:          "etwas",
-		}, Locale("ru"),
+		}, common.Locale("ru"),
 	},
 	{
 		DetectReq{
-			Locales:        []Locale{"en", "de", "ru"},
+			Locales:        []common.Locale{"en", "de", "ru"},
 			FallbackLocale: "de",
-		}, Locale("en"),
+		}, common.Locale("en"),
 	},
 }
 
