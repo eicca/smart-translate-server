@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/eicca/translate-server/common"
+	"github.com/eicca/translate-server/data"
 )
 
 var (
@@ -15,21 +15,21 @@ var (
 
 // DetectReq contains translation request information.
 type DetectReq struct {
-	Locales        []common.Locale
-	FallbackLocale common.Locale
+	Locales        []data.Locale
+	FallbackLocale data.Locale
 	Query          string
 }
 
 type apiDetectResp struct {
 	Data struct {
 		Detections [][]struct {
-			Language common.Locale `json:"language"`
+			Language data.Locale `json:"language"`
 		} `json:"detections"`
 	} `json:"data"`
 }
 
 // Detect detects locale of the text.
-func Detect(req DetectReq) (common.Locale, error) {
+func Detect(req DetectReq) (data.Locale, error) {
 	apiQuery, err := makeDetectQuery(req)
 	if err != nil {
 		return "", err
@@ -61,7 +61,7 @@ func makeDetectQuery(req DetectReq) (*url.URL, error) {
 	return u, nil
 }
 
-func parseDetectResp(data []byte) (common.Locale, error) {
+func parseDetectResp(data []byte) (data.Locale, error) {
 	apiResp := apiDetectResp{}
 	if err := json.Unmarshal(data, &apiResp); err != nil {
 		return "", fmt.Errorf("Error during google Translate API unmarshaling: %s", err)
@@ -76,7 +76,7 @@ func parseDetectResp(data []byte) (common.Locale, error) {
 	return locale, nil
 }
 
-func normalizeLocale(locale common.Locale, req DetectReq) common.Locale {
+func normalizeLocale(locale data.Locale, req DetectReq) data.Locale {
 	for _, reqLocale := range req.Locales {
 		if reqLocale == locale {
 			return locale

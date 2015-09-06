@@ -3,32 +3,32 @@ package gtranslate
 import (
 	"testing"
 
-	"github.com/eicca/translate-server/common"
+	"github.com/eicca/translate-server/data"
 )
 
 var detectTests = []struct {
 	in  DetectReq
-	out common.Locale
+	out data.Locale
 }{
 	{
 		DetectReq{
-			Locales:        []common.Locale{"en", "de", "ru"},
+			Locales:        []data.Locale{"en", "de", "ru"},
 			FallbackLocale: "de",
 			Query:          "hallo",
-		}, common.Locale("de"),
+		}, data.Locale("de"),
 	},
 	{
 		DetectReq{
-			Locales:        []common.Locale{"en", "ru"},
+			Locales:        []data.Locale{"en", "ru"},
 			FallbackLocale: "ru",
 			Query:          "etwas",
-		}, common.Locale("ru"),
+		}, data.Locale("ru"),
 	},
 	{
 		DetectReq{
-			Locales:        []common.Locale{"en", "de", "ru"},
+			Locales:        []data.Locale{"en", "de", "ru"},
 			FallbackLocale: "de",
-		}, common.Locale("en"),
+		}, data.Locale("en"),
 	},
 }
 

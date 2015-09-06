@@ -1,0 +1,33 @@
+{
+    "from": "en",
+    "phrase": "hello",
+    "wiktionary-link": "http://en.wiktionary.org/wiki/hello",
+    "meta-translations": [
+        {
+            "dest": "ru",
+            "source-url": "https://translate.google.com/#en/ru/hello",
+            "translations": [
+                {
+                    "lexical": "",
+                    "phrase": "Здравствуйте",
+                    "sounds": null,
+                    "source-name": "google",
+                    "source-url": "https://translate.google.com/#ru/en/Здравствуйте"
+                }
+            ]
+        },
+        {
+            "dest": "de",
+            "source-url": "https://translate.google.com/#en/de/hello",
+            "translations": [
+                {
+                    "lexical": "",
+                    "phrase": "Hallo",
+                    "sounds": null,
+                    "source-name": "google",
+                    "source-url": "https://translate.google.com/#de/en/Hallo"
+                }
+            ]
+        }
+    ]
+}

@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"os"
 
-	t "github.com/eicca/translate-server/translation"
+	"github.com/eicca/translate-server/data"
 )
 
 const (
@@ -23,26 +23,26 @@ type apiTranslateResp struct {
 }
 
 // Translate translates a text from source locale to target locale.
-func Translate(req t.Req) (t.Translation, error) {
+func Translate(req data.TranslationReq) (data.Translation, error) {
 	apiQuery, err := makeTranslateQuery(req)
 	if err != nil {
-		return t.Translation{}, err
+		return data.Translation{}, err
 	}
 
-	data, err := get(apiQuery)
+	rawData, err := get(apiQuery)
 	if err != nil {
-		return t.Translation{}, err
+		return data.Translation{}, err
 	}
 
-	translatedText, err := parseTranslateResp(data)
+	translatedText, err := parseTranslateResp(rawData)
 	if err != nil {
-		return t.Translation{}, err
+		return data.Translation{}, err
 	}
 
 	return translation(req, translatedText), nil
 }
 
-func translation(req t.Req, translatedText string) t.Translation {
+func translation(req data.TranslationReq, translatedText string) data.Translation {
 	translationWebURL := fmt.Sprintf(
 		"%s/#%s/%s/%s",
 		gtranslateWebURL, req.Source, req.Target, req.Query,
@@ -51,28 +51,28 @@ func translation(req t.Req, translatedText string) t.Translation {
 	// gtranslate returns always only one meaning.
 	meaning := meaning(req, translatedText)
 
-	return t.Translation{
+	return data.Translation{
 		Target:   req.Target,
 		WebURL:   translationWebURL,
-		Meanings: []t.Meaning{meaning},
+		Meanings: []data.Meaning{meaning},
 	}
 }
 
-func meaning(req t.Req, translatedText string) t.Meaning {
+func meaning(req data.TranslationReq, translatedText string) data.Meaning {
 	// meaningWebURL is a reverse of translation.
 	meaningWebURL := fmt.Sprintf(
 		"%s/#%s/%s/%s",
 		gtranslateWebURL, req.Target, req.Source, translatedText,
 	)
 
-	return t.Meaning{
+	return data.Meaning{
 		TranslatedText: translatedText,
 		OriginName:     originName,
 		WebURL:         meaningWebURL,
 	}
 }
 
-func makeTranslateQuery(req t.Req) (*url.URL, error) {
+func makeTranslateQuery(req data.TranslationReq) (*url.URL, error) {
 	u, err := url.Parse(translateURL)
 	if err != nil {
 		return nil, err
@@ -87,15 +87,15 @@ func makeTranslateQuery(req t.Req) (*url.URL, error) {
 	return u, nil
 }
 
-func parseTranslateResp(data []byte) (string, error) {
+func parseTranslateResp(rawData []byte) (string, error) {
 	apiResp := apiTranslateResp{}
-	if err := json.Unmarshal(data, &apiResp); err != nil {
+	if err := json.Unmarshal(rawData, &apiResp); err != nil {
 		return "", fmt.Errorf("Error during google Translate API unmarshaling: %s", err)
 	}
 
 	translations := apiResp.Data.Translations
 	if len(translations) < 1 {
-		return "", fmt.Errorf("No data was returned from google translate API. Response: %s \n Unmarshaled response: %v", data, apiResp)
+		return "", fmt.Errorf("No data was returned from google translate API. Response: %s \n Unmarshaled response: %v", rawData, apiResp)
 	}
 
 	text := translations[0].TranslatedText

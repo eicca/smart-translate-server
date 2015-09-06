@@ -4,16 +4,15 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/eicca/translate-server/common"
-	tr "github.com/eicca/translate-server/translation"
+	"github.com/eicca/translate-server/data"
 )
 
 func TestTranslateText(t *testing.T) {
-	req := tr.Req{Source: "en", Target: "de", Query: "hello"}
-	expectedRes := tr.Translation{
-		Target: common.Locale("de"),
+	req := data.TranslationReq{Source: "en", Target: "de", Query: "hello"}
+	expectedRes := data.Translation{
+		Target: data.Locale("de"),
 		WebURL: "https://translate.google.com/#en/de/hello",
-		Meanings: []tr.Meaning{tr.Meaning{
+		Meanings: []data.Meaning{data.Meaning{
 			TranslatedText: "Hallo",
 			OriginName:     "google",
 			WebURL:         "https://translate.google.com/#de/en/Hallo",
@@ -31,7 +30,7 @@ func TestTranslateText(t *testing.T) {
 }
 
 func TestTranslateApiError(t *testing.T) {
-	req := tr.Req{Source: "en", Query: "Hello"}
+	req := data.TranslationReq{Source: "en", Query: "Hello"}
 	_, err := Translate(req)
 	if err == nil {
 		t.Fatal("Translate haven't returned error on invalid request.")

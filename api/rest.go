@@ -7,6 +7,9 @@ import (
 	"net/url"
 
 	"github.com/ant0ine/go-json-rest/rest"
+
+	"github.com/eicca/translate-server/data"
+	"github.com/eicca/translate-server/translation"
 )
 
 // ListenAndServeRest runs http server for REST API.
@@ -41,7 +44,17 @@ func getTranslations(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	fmt.Println(params)
+	req := data.MultiTranslationReq{
+		Source:  data.Locale(params["from"][0]),
+		Targets: data.StringsAsLocales(params["dest-locales"]),
+		Query:   params["phrase"][0],
+	}
+	multiT, err := translation.Translate(req)
+	if err != nil {
+		rest.Error((w), err.Error(), 500)
+		return
+	}
+	w.WriteJson(&multiT)
 }
 
 func getSuggestions(w rest.ResponseWriter, r *rest.Request) {

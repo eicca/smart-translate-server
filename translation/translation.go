@@ -1,51 +1,33 @@
 package translation
 
 import (
-	"github.com/eicca/translate-server/common"
+	"fmt"
+
+	"github.com/eicca/translate-server/data"
+	"github.com/eicca/translate-server/gtranslate"
 )
 
-// MultiReq contains translation request for set of locales.
-type MultiReq struct {
-	Source  common.Locale
-	Targets []common.Locale
-	Query   string
+// Translate returns MultiTranslation filled from different sources.
+func Translate(multiReq data.MultiTranslationReq) (data.MultiTranslation, error) {
+	multiT := data.MultiTranslation{
+		Source:         multiReq.Source,
+		Query:          multiReq.Query,
+		WiktionaryLink: wiktionaryLink(multiReq),
+	}
+
+	for _, target := range multiReq.Targets {
+		req := data.TranslationReq{Source: multiReq.Source, Target: target, Query: multiReq.Query}
+		translation, err := gtranslate.Translate(req)
+		if err != nil {
+			return data.MultiTranslation{}, err
+		}
+
+		multiT.Translations = append(multiT.Translations, translation)
+	}
+
+	return multiT, nil
 }
 
-// Req contains translation request for one locale.
-type Req struct {
-	Source common.Locale
-	Target common.Locale
-	Query  string
-}
-
-// MultiTranslation consists of:
-// - meta data
-// - translations for different target locales
-// - parts of request information (NOTE: should not be used in the future)
-type MultiTranslation struct {
-	Source         common.Locale `json:"from"`
-	Query          string        `json:"phrase"`
-	WiktionaryLink string        `json:"wiktionary-link"`
-	Translations   []Translation `json:"meta-translations"`
-}
-
-// Translation contains information about translation to one locale.
-type Translation struct {
-	Target   common.Locale `json:"dest"`
-	WebURL   string        `json:"source-url"`
-	Meanings []Meaning     `json:"translations"`
-}
-
-// Meaning contains information about one meaning of translation.
-type Meaning struct {
-	Lexical        string   `json:"lexical"`
-	TranslatedText string   `json:"phrase"`
-	Sounds         []string `json:"sounds"`
-	OriginName     string   `json:"source-name"`
-	WebURL         string   `json:"source-url"`
-}
-
-func Translate(req MultiReq) (MultiTranslation, error) {
-
-	return MultiTranslation{}, nil
+func wiktionaryLink(multiReq data.MultiTranslationReq) string {
+	return fmt.Sprintf("http://%s.wiktionary.org/wiki/%s", multiReq.Source, multiReq.Query)
 }
