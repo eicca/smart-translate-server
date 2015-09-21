@@ -10,3 +10,7 @@ func StringsAsLocales(in []string) (locales []Locale) {
 	}
 	return
 }
+
+func (l Locale) String() string {
+	return string(l)
+}
