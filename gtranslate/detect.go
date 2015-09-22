@@ -13,13 +13,6 @@ var (
 	detectURL = fmt.Sprintf("%s/detect", translateURL)
 )
 
-// DetectReq contains translation request information.
-type DetectReq struct {
-	Locales        []data.Locale
-	FallbackLocale data.Locale
-	Query          string
-}
-
 type apiDetectResp struct {
 	Data struct {
 		Detections [][]struct {
@@ -29,7 +22,7 @@ type apiDetectResp struct {
 }
 
 // Detect detects locale of the text.
-func Detect(req DetectReq) (data.Locale, error) {
+func Detect(req data.SuggestionReq) (data.Locale, error) {
 	apiQuery, err := makeDetectQuery(req)
 	if err != nil {
 		return "", err
@@ -48,7 +41,7 @@ func Detect(req DetectReq) (data.Locale, error) {
 	return normalizeLocale(locale, req), nil
 }
 
-func makeDetectQuery(req DetectReq) (*url.URL, error) {
+func makeDetectQuery(req data.SuggestionReq) (*url.URL, error) {
 	u, err := url.Parse(detectURL)
 	if err != nil {
 		return nil, err
@@ -76,7 +69,7 @@ func parseDetectResp(data []byte) (data.Locale, error) {
 	return locale, nil
 }
 
-func normalizeLocale(locale data.Locale, req DetectReq) data.Locale {
+func normalizeLocale(locale data.Locale, req data.SuggestionReq) data.Locale {
 	for _, reqLocale := range req.Locales {
 		if reqLocale == locale {
 			return locale

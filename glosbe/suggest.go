@@ -7,6 +7,7 @@ import (
 	"net/url"
 
 	"github.com/eicca/translate-server/data"
+	"github.com/eicca/translate-server/gtranslate"
 )
 
 const (
@@ -15,8 +16,18 @@ const (
 
 type suggestResp []string
 
+// Suggest returns a slice of suggestions for a request.
+// glosbe returns suggestions only for the source locale.
 func Suggest(req data.SuggestionReq) ([]data.Suggestion, error) {
-	query, err := makeSuggestQuery(req)
+	source, err := gtranslate.Detect(req)
+	if err != nil {
+		return nil, err
+	}
+
+	source = req.NormalizeLocale(source)
+	target := req.TargetLocale(source)
+
+	query, err := makeSuggestQuery(req.Query, source, target)
 	if err != nil {
 		return nil, err
 	}
@@ -26,19 +37,19 @@ func Suggest(req data.SuggestionReq) ([]data.Suggestion, error) {
 		return nil, err
 	}
 
-	return parseSuggestResp(rawData, req.Source)
+	return parseSuggestResp(rawData, source)
 }
 
-func makeSuggestQuery(req data.SuggestionReq) (*url.URL, error) {
+func makeSuggestQuery(query string, source data.Locale, target data.Locale) (*url.URL, error) {
 	u, err := url.Parse(suggestURL)
 	if err != nil {
 		return nil, err
 	}
 
 	q := u.Query()
-	q.Set("from", req.Source.String())
-	q.Set("dest", req.Target.String())
-	q.Set("phrase", req.Query)
+	q.Set("from", source.String())
+	q.Set("dest", target.String())
+	q.Set("phrase", query)
 	u.RawQuery = q.Encode()
 	return u, nil
 }
@@ -58,6 +69,7 @@ func parseSuggestResp(rawData []byte, locale data.Locale) ([]data.Suggestion, er
 	return suggestions, nil
 }
 
+// TODO duplication with gtranslate.get
 func get(u *url.URL) ([]byte, error) {
 	res, err := http.Get(u.String())
 	if err != nil {

@@ -7,25 +7,25 @@ import (
 )
 
 var detectTests = []struct {
-	in  DetectReq
+	in  data.SuggestionReq
 	out data.Locale
 }{
 	{
-		DetectReq{
+		data.SuggestionReq{
 			Locales:        []data.Locale{"en", "de", "ru"},
 			FallbackLocale: "de",
 			Query:          "hallo",
 		}, data.Locale("de"),
 	},
 	{
-		DetectReq{
+		data.SuggestionReq{
 			Locales:        []data.Locale{"en", "ru"},
 			FallbackLocale: "ru",
 			Query:          "etwas",
 		}, data.Locale("ru"),
 	},
 	{
-		DetectReq{
+		data.SuggestionReq{
 			Locales:        []data.Locale{"en", "de", "ru"},
 			FallbackLocale: "de",
 		}, data.Locale("en"),

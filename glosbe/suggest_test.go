@@ -12,12 +12,23 @@ var suggestTests = []struct {
 }{
 	{
 		data.SuggestionReq{
-			Source: data.Locale("de"),
-			Target: data.Locale("en"),
-			Query:  "irgend",
+			Locales:        []data.Locale{"en", "de", "ru"},
+			FallbackLocale: data.Locale("ru"),
+			Query:          "irgend",
 		},
 		[]data.Suggestion{
 			data.Suggestion{Text: "irgendein", Locale: "de"},
+			data.Suggestion{Text: "irgend etwas", Locale: "de"},
+		},
+	},
+	{
+		data.SuggestionReq{
+			Locales:        []data.Locale{"en", "ru"},
+			FallbackLocale: data.Locale("ru"),
+			Query:          "irgend",
+		},
+		[]data.Suggestion{
+			data.Suggestion{Text: "Iris", Locale: "ru"},
 		},
 	},
 }
