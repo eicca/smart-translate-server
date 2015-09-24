@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/eicca/translate-server/data"
+	"github.com/eicca/translate-server/httputils"
 )
 
 var (
@@ -28,7 +29,7 @@ func Detect(req data.SuggestionReq) (data.Locale, error) {
 		return "", err
 	}
 
-	data, err := get(apiQuery)
+	data, err := httputils.Get(apiQuery)
 	if err != nil {
 		return "", err
 	}

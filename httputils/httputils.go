@@ -1,4 +1,4 @@
-package gtranslate
+package httputils
 
 import (
 	"io/ioutil"
@@ -6,11 +6,8 @@ import (
 	"net/url"
 )
 
-const (
-	translateURL = "https://www.googleapis.com/language/translate/v2"
-)
-
-func get(u *url.URL) ([]byte, error) {
+// Get sends a get request to provided `url` and reads a response.
+func Get(u *url.URL) ([]byte, error) {
 	res, err := http.Get(u.String())
 	if err != nil {
 		return nil, err

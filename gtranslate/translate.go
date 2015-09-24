@@ -7,9 +7,11 @@ import (
 	"os"
 
 	"github.com/eicca/translate-server/data"
+	"github.com/eicca/translate-server/httputils"
 )
 
 const (
+	translateURL     = "https://www.googleapis.com/language/translate/v2"
 	gtranslateWebURL = "https://translate.google.com"
 	originName       = "google"
 )
@@ -29,7 +31,7 @@ func Translate(req data.TranslationReq) (data.Translation, error) {
 		return data.Translation{}, err
 	}
 
-	rawData, err := get(apiQuery)
+	rawData, err := httputils.Get(apiQuery)
 	if err != nil {
 		return data.Translation{}, err
 	}

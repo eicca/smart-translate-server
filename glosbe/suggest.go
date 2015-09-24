@@ -2,12 +2,11 @@ package glosbe
 
 import (
 	"encoding/json"
-	"io/ioutil"
-	"net/http"
 	"net/url"
 
 	"github.com/eicca/translate-server/data"
 	"github.com/eicca/translate-server/gtranslate"
+	"github.com/eicca/translate-server/httputils"
 )
 
 const (
@@ -33,7 +32,7 @@ func Suggest(req data.SuggestionReq) ([]data.Suggestion, error) {
 		return nil, err
 	}
 
-	rawData, err := get(query)
+	rawData, err := httputils.Get(query)
 	if err != nil {
 		return nil, err
 	}
@@ -72,20 +71,4 @@ func parseSuggestResp(rawData []byte, locale data.Locale) ([]data.Suggestion, er
 	}
 
 	return suggestions, nil
-}
-
-// TODO duplication with gtranslate.get
-func get(u *url.URL) ([]byte, error) {
-	res, err := http.Get(u.String())
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return body, nil
 }
