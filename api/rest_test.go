@@ -8,8 +8,6 @@ import (
 	"testing"
 
 	"github.com/ant0ine/go-json-rest/rest/test"
-
-	"github.com/eicca/translate-server/data"
 )
 
 func TestRequiredParamsValidation(t *testing.T) {
@@ -26,9 +24,10 @@ func TestTranslations(t *testing.T) {
 }
 
 func TestSuggestions(t *testing.T) {
-	path := "/suggestions?phrase=hello&locales=en&locales=de&fallback-locale=de"
+	path := "/suggestions?phrase=irgend&locales=en&locales=de&fallback-locale=en"
 	rec := makeRequest(t, path)
 	rec.CodeIs(200)
+	compareResponse(t, rec, "irgend|en,de")
 }
 
 func makeRequest(t *testing.T, path string) *test.Recorded {
@@ -40,7 +39,8 @@ func makeRequest(t *testing.T, path string) *test.Recorded {
 func compareResponse(t *testing.T, rec *test.Recorded, fileName string) {
 	expected := exampleRequest(t, fileName)
 
-	var actual data.MultiTranslation
+	var actual interface{}
+	fmt.Println(rec.Recorder.Body)
 	if err := rec.DecodeJsonPayload(&actual); err != nil {
 		t.Fatal(err)
 	}
@@ -51,16 +51,16 @@ func compareResponse(t *testing.T, rec *test.Recorded, fileName string) {
 	}
 }
 
-func exampleRequest(t *testing.T, fileName string) data.MultiTranslation {
+func exampleRequest(t *testing.T, fileName string) interface{} {
 	dat, err := ioutil.ReadFile("example_requests/" + fileName + ".json")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	var multiT data.MultiTranslation
-	if err = json.Unmarshal(dat, &multiT); err != nil {
+	var expected interface{}
+	if err = json.Unmarshal(dat, &expected); err != nil {
 		t.Fatal(err)
 	}
 
-	return multiT
+	return expected
 }

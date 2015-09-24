@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	suggestURL = "http://glosbe.com/ajax/phrasesAutosuggest"
+	maxSuggestions = 5
+	suggestURL     = "http://glosbe.com/ajax/phrasesAutosuggest"
 )
 
 type suggestResp []string
@@ -58,6 +59,10 @@ func parseSuggestResp(rawData []byte, locale data.Locale) ([]data.Suggestion, er
 	suggestResp := []string{}
 	if err := json.Unmarshal(rawData, &suggestResp); err != nil {
 		return nil, err
+	}
+
+	if len(suggestResp) > maxSuggestions {
+		suggestResp = suggestResp[:maxSuggestions]
 	}
 
 	suggestions := []data.Suggestion{}

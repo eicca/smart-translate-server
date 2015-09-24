@@ -9,6 +9,7 @@ import (
 	"github.com/ant0ine/go-json-rest/rest"
 
 	"github.com/eicca/translate-server/data"
+	"github.com/eicca/translate-server/glosbe"
 	"github.com/eicca/translate-server/translation"
 )
 
@@ -65,7 +66,18 @@ func getSuggestions(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	fmt.Println(params)
+	req := data.SuggestionReq{
+		Locales:        data.StringsAsLocales(params["locales"]),
+		FallbackLocale: data.Locale(params["fallback-locale"][0]),
+		Query:          params["phrase"][0],
+	}
+
+	suggestions, err := glosbe.Suggest(req)
+	if err != nil {
+		rest.Error((w), err.Error(), 500)
+		return
+	}
+	w.WriteJson(&suggestions)
 }
 
 func getParams(r *rest.Request, params []string) (url.Values, error) {
