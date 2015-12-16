@@ -28,7 +28,7 @@ var detectTests = []struct {
 		data.SuggestionReq{
 			Locales:        []data.Locale{"en", "de", "ru"},
 			FallbackLocale: "de",
-		}, data.Locale("en"),
+		}, data.Locale("de"),
 	},
 }
 
