@@ -14,9 +14,9 @@ import (
 )
 
 // ListenAndServeRest runs http server for REST API.
-func ListenAndServeRest() {
+func ListenAndServeRest(port string) {
 	api := NewRest()
-	log.Fatal(http.ListenAndServe(":3456", api.MakeHandler()))
+	log.Fatal(http.ListenAndServe(port, api.MakeHandler()))
 }
 
 // NewRest configures REST api handlers and wrappers.
