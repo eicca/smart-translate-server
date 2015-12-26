@@ -9,14 +9,21 @@ import (
 )
 
 func TestRequiredParamsValidation(t *testing.T) {
-	path := "/translations?dest-locales=ru&dest-locales=de&phrase=hello"
-	rec := makeRequest(t, path)
+	payload := data.MultiTranslationReq{
+		Query:   "hello",
+		Targets: []data.Locale{"ru", "de"},
+	}
+	rec := makeRequest(t, "/translations", payload)
 	rec.CodeIs(400)
 }
 
 func TestTranslations(t *testing.T) {
-	path := "/translations?from=en&dest-locales=ru&dest-locales=de&phrase=hello"
-	rec := makeRequest(t, path)
+	payload := data.MultiTranslationReq{
+		Query:   "hello",
+		Targets: []data.Locale{"ru", "de"},
+		Source:  data.Locale("en"),
+	}
+	rec := makeRequest(t, "/translations", payload)
 	rec.CodeIs(200)
 
 	var mt data.MultiTranslation
@@ -28,8 +35,12 @@ func TestTranslations(t *testing.T) {
 }
 
 func TestSuggestions(t *testing.T) {
-	path := "/suggestions?phrase=irgend&locales=en&locales=de&fallback-locale=en"
-	rec := makeRequest(t, path)
+	payload := data.SuggestionReq{
+		Query:          "irgend",
+		Locales:        []data.Locale{"en", "de"},
+		FallbackLocale: data.Locale("en"),
+	}
+	rec := makeRequest(t, "/suggestions", payload)
 	rec.CodeIs(200)
 
 	var ss []data.Suggestion
@@ -40,9 +51,9 @@ func TestSuggestions(t *testing.T) {
 	}
 }
 
-func makeRequest(t *testing.T, path string) *test.Recorded {
+func makeRequest(t *testing.T, path string, payload interface{}) *test.Recorded {
 	api := NewRest()
-	req := test.MakeSimpleRequest("GET", fmt.Sprintf("http://1.2.3.4%s", path), nil)
+	req := test.MakeSimpleRequest("POST", fmt.Sprintf("http://1.2.3.4%s", path), payload)
 	return test.RunRequest(t, api.MakeHandler(), req)
 }
 

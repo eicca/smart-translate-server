@@ -2,9 +2,9 @@ package data
 
 // MultiTranslationReq contains translation request for set of locales.
 type MultiTranslationReq struct {
-	Source  Locale
-	Targets []Locale
-	Query   string
+	Source  Locale   `json:"source"`
+	Targets []Locale `json:"targets"`
+	Query   string   `json:"query"`
 }
 
 // TranslationReq contains translation request for one locale.
@@ -19,10 +19,10 @@ type TranslationReq struct {
 // - translations for different target locales
 // - parts of request information (NOTE: should not be used in the future)
 type MultiTranslation struct {
-	Source         Locale
-	Query          string
-	WiktionaryLink string
-	Translations   []Translation
+	Source         Locale        `json:"source"`
+	Query          string        `json:"query"`
+	WiktionaryLink string        `json:"wiktionary-link"`
+	Translations   []Translation `json:"translations"`
 }
 
 // Translation contains information about translation to one locale.

@@ -1,10 +1,8 @@
 package api
 
 import (
-	"fmt"
 	"log"
 	"net/http"
-	"net/url"
 
 	"github.com/ant0ine/go-json-rest/rest"
 
@@ -30,7 +28,7 @@ func NewRest() *rest.Api {
 		OriginValidator: func(origin string, request *rest.Request) bool {
 			return true
 		},
-		AllowedMethods: []string{"GET"},
+		AllowedMethods: []string{"GET", "POST"},
 		AllowedHeaders: []string{
 			"Accept", "Content-Type", "X-Custom-Header", "Origin"},
 		AccessControlAllowCredentials: true,
@@ -38,8 +36,8 @@ func NewRest() *rest.Api {
 	})
 
 	router, err := rest.MakeRouter(
-		rest.Get("/translations", getTranslations),
-		rest.Get("/suggestions", getSuggestions),
+		rest.Post("/translations", translations),
+		rest.Post("/suggestions", suggestions),
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -49,19 +47,22 @@ func NewRest() *rest.Api {
 	return api
 }
 
-func getTranslations(w rest.ResponseWriter, r *rest.Request) {
-	required := []string{"from", "dest-locales", "phrase"}
-	params, err := getParams(r, required)
+func translations(w rest.ResponseWriter, r *rest.Request) {
+	var req data.MultiTranslationReq
+	err := r.DecodeJsonPayload(&req)
 	if err != nil {
-		rest.Error((w), err.Error(), 400)
+		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if req.Targets == nil {
+		rest.Error(w, "target locales required", 400)
+		return
+	}
+	if req.Source == "" {
+		rest.Error(w, "source locale required", 400)
 		return
 	}
 
-	req := data.MultiTranslationReq{
-		Source:  data.Locale(params["from"][0]),
-		Targets: data.StringsAsLocales(params["dest-locales"]),
-		Query:   params["phrase"][0],
-	}
 	multiT, err := translation.Translate(req)
 	if err != nil {
 		rest.Error((w), err.Error(), 500)
@@ -70,18 +71,19 @@ func getTranslations(w rest.ResponseWriter, r *rest.Request) {
 	w.WriteJson(&multiT)
 }
 
-func getSuggestions(w rest.ResponseWriter, r *rest.Request) {
-	required := []string{"phrase", "locales", "fallback-locale"}
-	params, err := getParams(r, required)
+func suggestions(w rest.ResponseWriter, r *rest.Request) {
+	var req data.SuggestionReq
+	err := r.DecodeJsonPayload(&req)
 	if err != nil {
-		rest.Error((w), err.Error(), 400)
+		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	req := data.SuggestionReq{
-		Locales:        data.StringsAsLocales(params["locales"]),
-		FallbackLocale: data.Locale(params["fallback-locale"][0]),
-		Query:          params["phrase"][0],
+	if req.FallbackLocale == "" {
+		req.FallbackLocale = data.Locale("en")
+	}
+	if req.Locales == nil {
+		rest.Error(w, "locales required", 400)
+		return
 	}
 
 	suggestions, err := glosbe.Suggest(req)
@@ -90,16 +92,4 @@ func getSuggestions(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 	w.WriteJson(&suggestions)
-}
-
-func getParams(r *rest.Request, params []string) (url.Values, error) {
-	query := r.URL.Query()
-
-	for _, param := range params {
-		if len(query[param]) < 1 {
-			return nil, fmt.Errorf("%s parameter is required", param)
-		}
-	}
-
-	return query, nil
 }
