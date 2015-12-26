@@ -1,0 +1,14 @@
+api:
+  image: translate-server
+  volumes:
+    - ".:/go/src/app"
+  ports:
+    - "8080:8080"
+  env_file:
+    - ./.env
+  environment:
+    GLOSBE_TRANSLATE_HOST: "glosbe-translate:3000"
+
+glosbe_translate:
+  image: glosbe-translate
+  container_name: glosbe-translate

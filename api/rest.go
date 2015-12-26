@@ -25,6 +25,18 @@ func NewRest() *rest.Api {
 	api.MakeHandler()
 	api.Use(rest.DefaultDevStack...)
 
+	api.Use(&rest.CorsMiddleware{
+		RejectNonCorsRequests: false,
+		OriginValidator: func(origin string, request *rest.Request) bool {
+			return true
+		},
+		AllowedMethods: []string{"GET"},
+		AllowedHeaders: []string{
+			"Accept", "Content-Type", "X-Custom-Header", "Origin"},
+		AccessControlAllowCredentials: true,
+		AccessControlMaxAge:           3600,
+	})
+
 	router, err := rest.MakeRouter(
 		rest.Get("/translations", getTranslations),
 		rest.Get("/suggestions", getSuggestions),

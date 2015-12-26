@@ -1,13 +1,11 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"reflect"
 	"testing"
 
 	"github.com/ant0ine/go-json-rest/rest/test"
+	"github.com/eicca/translate-server/data"
 )
 
 func TestRequiredParamsValidation(t *testing.T) {
@@ -20,14 +18,26 @@ func TestTranslations(t *testing.T) {
 	path := "/translations?from=en&dest-locales=ru&dest-locales=de&phrase=hello"
 	rec := makeRequest(t, path)
 	rec.CodeIs(200)
-	compareResponse(t, rec, "hello|en->ru,de")
+
+	var mt data.MultiTranslation
+	unmarshal(t, rec, &mt)
+
+	if mt.Translations == nil {
+		t.Error("Expected to return translations")
+	}
 }
 
 func TestSuggestions(t *testing.T) {
 	path := "/suggestions?phrase=irgend&locales=en&locales=de&fallback-locale=en"
 	rec := makeRequest(t, path)
 	rec.CodeIs(200)
-	compareResponse(t, rec, "irgend|en,de")
+
+	var ss []data.Suggestion
+	unmarshal(t, rec, &ss)
+
+	if ss == nil {
+		t.Error("Expected to return suggestions")
+	}
 }
 
 func makeRequest(t *testing.T, path string) *test.Recorded {
@@ -36,31 +46,8 @@ func makeRequest(t *testing.T, path string) *test.Recorded {
 	return test.RunRequest(t, api.MakeHandler(), req)
 }
 
-func compareResponse(t *testing.T, rec *test.Recorded, fileName string) {
-	expected := exampleRequest(t, fileName)
-
-	var actual interface{}
-	fmt.Println(rec.Recorder.Body)
-	if err := rec.DecodeJsonPayload(&actual); err != nil {
+func unmarshal(t *testing.T, rec *test.Recorded, in interface{}) {
+	if err := rec.DecodeJsonPayload(in); err != nil {
 		t.Fatal(err)
 	}
-
-	if !reflect.DeepEqual(actual, expected) {
-		t.Errorf("Wrong response for '%s' request.\nExpected: %+v\nGot: %+v",
-			fileName, expected, actual)
-	}
-}
-
-func exampleRequest(t *testing.T, fileName string) interface{} {
-	dat, err := ioutil.ReadFile("example_requests/" + fileName + ".json")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var expected interface{}
-	if err = json.Unmarshal(dat, &expected); err != nil {
-		t.Fatal(err)
-	}
-
-	return expected
 }

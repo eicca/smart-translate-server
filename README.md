@@ -1,12 +1,31 @@
-## Build and run
-```
-docker build -t translate-server .
-docker run -p 8080:8080 --name tserver --rm -e GOOGLE_API_KEY=api_key translate-server
-```
+# Translations and suggestions API
+
+TODO add schema
+
+## Prerequisites
+
+You need docker and docker-compose installed.
 
 ## Run tests
+
+Populate env file:
 ```
 cp .env.example .env
 edit .env
-env $(cat .env | xargs) go test ./...
+```
+
+Start glosbe_translate service:
+```
+docker-compose --x-networking start glosbe_translate
+```
+
+Run tests:
+```
+docker-compose --x-networking run api go test ./...
+```
+
+## Run development cluster
+
+```
+docker-compose --x-networking up
 ```
