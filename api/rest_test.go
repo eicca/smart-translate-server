@@ -51,6 +51,11 @@ func TestSuggestions(t *testing.T) {
 	}
 }
 
+func TestHealth(t *testing.T) {
+	rec := makeRequest(t, "/health", nil)
+	rec.CodeIs(200)
+}
+
 func makeRequest(t *testing.T, path string, payload interface{}) *test.Recorded {
 	api := NewRest()
 	req := test.MakeSimpleRequest("POST", fmt.Sprintf("http://1.2.3.4%s", path), payload)

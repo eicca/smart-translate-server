@@ -29,3 +29,9 @@ docker-compose --x-networking run api go test ./...
 ```
 docker-compose --x-networking up
 ```
+
+## Rebuilding container
+
+```
+docker build -t translate-server .
+```

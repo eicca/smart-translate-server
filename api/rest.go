@@ -38,6 +38,7 @@ func NewRest() *rest.Api {
 	router, err := rest.MakeRouter(
 		rest.Post("/translations", translations),
 		rest.Post("/suggestions", suggestions),
+		rest.Get("/health", health),
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -92,4 +93,8 @@ func suggestions(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 	w.WriteJson(&suggestions)
+}
+
+func health(w rest.ResponseWriter, r *rest.Request) {
+	w.WriteHeader(http.StatusOK)
 }
