@@ -1,10 +1,13 @@
 package cache
 
 import (
+	"bytes"
+	"compress/gzip"
 	"crypto/sha1"
 	"encoding/base64"
 	"encoding/json"
 	"io"
+	"io/ioutil"
 	"os"
 
 	"gopkg.in/redis.v3"
@@ -37,14 +40,20 @@ func NewRedisClient() Client {
 	return &RedisClient{client: redis.NewClient(&opts)}
 }
 
-// Set stores the value transformed into json with the key hashed with sha1
+// Set stores the value transformed into zipped json
+// with the key hashed with sha1
 func (rs *RedisClient) Set(obj Cachable, val interface{}) error {
 	rawVal, err := json.Marshal(val)
 	if err != nil {
 		return err
 	}
 
-	return rs.client.Set(hash(obj.CacheKey()), rawVal, 0).Err()
+	var zipped bytes.Buffer
+	w := gzip.NewWriter(&zipped)
+	w.Write(rawVal)
+	w.Close()
+
+	return rs.client.Set(hash(obj.CacheKey()), zipped.String(), 0).Err()
 }
 
 // Get retrieves the value by sha1 hashed key.
@@ -55,7 +64,19 @@ func (rs *RedisClient) Get(obj Cachable, val interface{}) error {
 		return err
 	}
 
-	return json.Unmarshal([]byte(rawVal), val)
+	zipped := bytes.NewBufferString(rawVal)
+	reader, err := gzip.NewReader(zipped)
+	if err != nil {
+		return err
+	}
+	defer reader.Close()
+
+	unzipped, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(unzipped, val)
 }
 
 // Flush wipes all data
