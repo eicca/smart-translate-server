@@ -42,7 +42,7 @@ func TestSuggest(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		for _, s := range res {
+		for _, s := range *res {
 			resMap[s.Text] = s.Locale
 		}
 

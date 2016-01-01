@@ -2,6 +2,7 @@ package glosbe
 
 import (
 	"encoding/json"
+	"log"
 	"net/url"
 
 	"github.com/eicca/translate-server/data"
@@ -18,7 +19,11 @@ type suggestResp []string
 
 // Suggest returns a slice of suggestions for a request.
 // glosbe returns suggestions only for the source locale.
-func Suggest(req data.SuggestionReq) ([]data.Suggestion, error) {
+func Suggest(req data.SuggestionReq) (*[]data.Suggestion, error) {
+	if resp, err := req.FromCache(); err == nil {
+		return resp, nil
+	}
+
 	source, err := gtranslate.Detect(req)
 	if err != nil {
 		return nil, err
@@ -37,7 +42,14 @@ func Suggest(req data.SuggestionReq) ([]data.Suggestion, error) {
 		return nil, err
 	}
 
-	return parseSuggestResp(rawData, source)
+	resp, err := parseSuggestResp(rawData, source)
+	if err != nil {
+		if cacheErr := req.SaveCache(resp); cacheErr != nil {
+			log.Println(cacheErr)
+		}
+	}
+
+	return resp, err
 }
 
 func makeSuggestQuery(query string, source data.Locale, target data.Locale) (*url.URL, error) {
@@ -54,7 +66,7 @@ func makeSuggestQuery(query string, source data.Locale, target data.Locale) (*ur
 	return u, nil
 }
 
-func parseSuggestResp(rawData []byte, locale data.Locale) ([]data.Suggestion, error) {
+func parseSuggestResp(rawData []byte, locale data.Locale) (*[]data.Suggestion, error) {
 	suggestResp := []string{}
 	if err := json.Unmarshal(rawData, &suggestResp); err != nil {
 		return nil, err
@@ -70,5 +82,5 @@ func parseSuggestResp(rawData []byte, locale data.Locale) ([]data.Suggestion, er
 		suggestions = append(suggestions, s)
 	}
 
-	return suggestions, nil
+	return &suggestions, nil
 }

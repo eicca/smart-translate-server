@@ -8,7 +8,12 @@ api:
     - ./.env
   environment:
     GLOSBE_TRANSLATE_HOST: "glosbe-translate:3000"
+    REDIS_HOST: "redis:6379"
 
 glosbe_translate:
   image: glosbe-translate
   container_name: glosbe-translate
+
+redis:
+  image: redis
+  container_name: redis

@@ -1,5 +1,12 @@
 package data
 
+import (
+	"fmt"
+	"strings"
+
+	"github.com/eicca/translate-server/cache"
+)
+
 // MultiTranslationReq contains translation request for set of locales.
 type MultiTranslationReq struct {
 	Source  Locale   `json:"source"`
@@ -39,4 +46,24 @@ type Meaning struct {
 	Sounds         []string `json:"sounds"`
 	OriginName     string   `json:"origin-name"`
 	WebURL         string   `json:"web-url"`
+}
+
+// FromCache retrieves the response from cache.
+// If it's not here the error will be returned.
+func (r MultiTranslationReq) FromCache() (*MultiTranslation, error) {
+	var resp MultiTranslation
+	err := cache.DefaultClient.Get(r, &resp)
+	return &resp, err
+}
+
+// SaveCache saves the response to the cache.
+func (r MultiTranslationReq) SaveCache(resp *MultiTranslation) error {
+	return cache.DefaultClient.Set(r, resp)
+}
+
+// CacheKey defines which components are responsible for uniqueness
+// of the response.
+func (r MultiTranslationReq) CacheKey() string {
+	locales := strings.Join(LocalesToStrings(r.Targets), "")
+	return fmt.Sprintf("%s.%s.%s", locales, r.Source, r.Query)
 }

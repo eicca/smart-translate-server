@@ -64,12 +64,12 @@ func translations(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	multiT, err := translation.Translate(req)
+	resp, err := translation.Translate(req)
 	if err != nil {
 		rest.Error((w), err.Error(), 500)
 		return
 	}
-	w.WriteJson(&multiT)
+	w.WriteJson(resp)
 }
 
 func suggestions(w rest.ResponseWriter, r *rest.Request) {
@@ -87,12 +87,13 @@ func suggestions(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	suggestions, err := glosbe.Suggest(req)
+	resp, err := glosbe.Suggest(req)
 	if err != nil {
 		rest.Error((w), err.Error(), 500)
 		return
 	}
-	w.WriteJson(&suggestions)
+
+	w.WriteJson(resp)
 }
 
 func health(w rest.ResponseWriter, r *rest.Request) {

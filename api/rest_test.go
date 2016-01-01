@@ -32,6 +32,9 @@ func TestTranslations(t *testing.T) {
 	if mt.Translations == nil {
 		t.Error("Expected to return translations")
 	}
+
+	// Make the same request to hit cache
+	makeRequest(t, "/translations", payload).CodeIs(200)
 }
 
 func TestSuggestions(t *testing.T) {
@@ -49,10 +52,14 @@ func TestSuggestions(t *testing.T) {
 	if ss == nil {
 		t.Error("Expected to return suggestions")
 	}
+
+	// Make the same request to hit cache
+	makeRequest(t, "/suggestions", payload).CodeIs(200)
 }
 
 func TestHealth(t *testing.T) {
-	rec := makeRequest(t, "/health", nil)
+	req := test.MakeSimpleRequest("GET", "http://1.2.3.4/health", nil)
+	rec := test.RunRequest(t, NewRest().MakeHandler(), req)
 	rec.CodeIs(200)
 }
 

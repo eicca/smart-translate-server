@@ -16,7 +16,7 @@ edit .env
 
 Start glosbe_translate service:
 ```
-docker-compose --x-networking start glosbe_translate
+docker-compose --x-networking up -d glosbe_translate
 ```
 
 Run tests:

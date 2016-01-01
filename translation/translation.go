@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 
@@ -13,7 +14,11 @@ import (
 )
 
 // Translate returns MultiTranslation filled from different sources.
-func Translate(multiReq data.MultiTranslationReq) (data.MultiTranslation, error) {
+func Translate(multiReq data.MultiTranslationReq) (*data.MultiTranslation, error) {
+	if resp, err := multiReq.FromCache(); err == nil {
+		return resp, nil
+	}
+
 	multiT := data.MultiTranslation{
 		Source:         multiReq.Source,
 		Query:          multiReq.Query,
@@ -26,21 +31,24 @@ func Translate(multiReq data.MultiTranslationReq) (data.MultiTranslation, error)
 		// Try to translate with glosbe first.
 		translation, err := glosbeTranslate(req)
 		if err != nil {
-			return data.MultiTranslation{}, fmt.Errorf("glosbe translation failed: %s", err)
+			return nil, fmt.Errorf("glosbe translation failed: %s", err)
 		}
 
 		// If there's no glosbe translation - fallback to google translation
 		if len(translation.Meanings) < 1 {
 			translation, err = gtranslate.Translate(req)
 			if err != nil {
-				return data.MultiTranslation{}, fmt.Errorf("google translation failed: %s", err)
+				return nil, fmt.Errorf("google translation failed: %s", err)
 			}
 		}
 
 		multiT.Translations = append(multiT.Translations, translation)
 	}
 
-	return multiT, nil
+	if cacheErr := multiReq.SaveCache(&multiT); cacheErr != nil {
+		log.Println(cacheErr)
+	}
+	return &multiT, nil
 }
 
 func wiktionaryLink(multiReq data.MultiTranslationReq) string {

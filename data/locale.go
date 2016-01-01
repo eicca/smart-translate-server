@@ -11,6 +11,13 @@ func StringsAsLocales(in []string) (locales []Locale) {
 	return
 }
 
+func LocalesToStrings(in []Locale) (out []string) {
+	for _, l := range in {
+		out = append(out, l.String())
+	}
+	return
+}
+
 func (l Locale) String() string {
 	return string(l)
 }

@@ -1,5 +1,13 @@
 package data
 
+import (
+	"fmt"
+	"log"
+	"strings"
+
+	"github.com/eicca/translate-server/cache"
+)
+
 // SuggestionReq contains:
 // - Query: the text user types in auto-complete field
 // - Locales: list of locales user is using
@@ -44,6 +52,26 @@ func (s SuggestionReq) TargetLocale(sourceLocale Locale) Locale {
 			return locale
 		}
 	}
-	// TODO replace panic with logging.
-	panic("TargetLocale should always return a locale")
+	log.Println("ERROR: TargetLocale should always return a locale")
+	return s.Locales[0]
+}
+
+// FromCache retrieves the response from cache.
+// If it's not here the error will be returned.
+func (s SuggestionReq) FromCache() (*[]Suggestion, error) {
+	var resp []Suggestion
+	err := cache.DefaultClient.Get(s, &resp)
+	return &resp, err
+}
+
+// SaveCache saves the response to the cache.
+func (s SuggestionReq) SaveCache(resp *[]Suggestion) error {
+	return cache.DefaultClient.Set(s, resp)
+}
+
+// CacheKey defines which components are responsible for uniqueness
+// of the response.
+func (s SuggestionReq) CacheKey() string {
+	locales := strings.Join(LocalesToStrings(s.Locales), "")
+	return fmt.Sprintf("%s.%s.%s", locales, s.FallbackLocale, s.Query)
 }
