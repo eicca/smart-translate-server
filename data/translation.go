@@ -65,5 +65,5 @@ func (r MultiTranslationReq) SaveCache(resp *MultiTranslation) error {
 // of the response.
 func (r MultiTranslationReq) CacheKey() string {
 	locales := strings.Join(LocalesToStrings(r.Targets), "")
-	return fmt.Sprintf("%s.%s.%s", locales, r.Source, r.Query)
+	return fmt.Sprintf("translations:%s:%s:%s", locales, r.Source, r.Query)
 }

@@ -73,5 +73,5 @@ func (s SuggestionReq) SaveCache(resp *[]Suggestion) error {
 // of the response.
 func (s SuggestionReq) CacheKey() string {
 	locales := strings.Join(LocalesToStrings(s.Locales), "")
-	return fmt.Sprintf("%s.%s.%s", locales, s.FallbackLocale, s.Query)
+	return fmt.Sprintf("suggestions:%s:%s", locales, s.Query)
 }

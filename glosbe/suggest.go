@@ -20,7 +20,8 @@ type suggestResp []string
 // Suggest returns a slice of suggestions for a request.
 // glosbe returns suggestions only for the source locale.
 func Suggest(req data.SuggestionReq) (*[]data.Suggestion, error) {
-	if resp, err := req.FromCache(); err == nil {
+	resp, err := req.FromCache()
+	if err == nil {
 		return resp, nil
 	}
 
@@ -42,14 +43,15 @@ func Suggest(req data.SuggestionReq) (*[]data.Suggestion, error) {
 		return nil, err
 	}
 
-	resp, err := parseSuggestResp(rawData, source)
+	resp, err = parseSuggestResp(rawData, source)
 	if err != nil {
-		if cacheErr := req.SaveCache(resp); cacheErr != nil {
-			log.Println(cacheErr)
-		}
+		return nil, err
 	}
 
-	return resp, err
+	if cacheErr := req.SaveCache(resp); cacheErr != nil {
+		log.Println(cacheErr)
+	}
+	return resp, nil
 }
 
 func makeSuggestQuery(query string, source data.Locale, target data.Locale) (*url.URL, error) {

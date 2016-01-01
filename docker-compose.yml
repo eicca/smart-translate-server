@@ -1,5 +1,5 @@
 api:
-  image: translate-server
+  build: .
   volumes:
     - ".:/go/src/app"
   ports:
