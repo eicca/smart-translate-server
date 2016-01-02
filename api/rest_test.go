@@ -57,6 +57,15 @@ func TestSuggestions(t *testing.T) {
 	makeRequest(t, "/suggestions", payload).CodeIs(200)
 }
 
+func TestMaxQueryLen(t *testing.T) {
+	payload := data.MultiTranslationReq{
+		Query:   "hello long long long long long long long long long long query",
+		Targets: []data.Locale{"ru", "de"},
+		Source:  data.Locale("en"),
+	}
+	makeRequest(t, "/translations", payload).CodeIs(400)
+}
+
 func TestHealth(t *testing.T) {
 	req := test.MakeSimpleRequest("GET", "http://1.2.3.4/health", nil)
 	rec := test.RunRequest(t, NewRest().MakeHandler(), req)

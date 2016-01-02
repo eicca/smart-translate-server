@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -9,6 +10,10 @@ import (
 	"github.com/eicca/translate-server/data"
 	"github.com/eicca/translate-server/glosbe"
 	"github.com/eicca/translate-server/translation"
+)
+
+const (
+	maxQueryLen = 50
 )
 
 // ListenAndServeRest runs http server for REST API.
@@ -63,6 +68,10 @@ func translations(w rest.ResponseWriter, r *rest.Request) {
 		rest.Error(w, "source locale required", 400)
 		return
 	}
+	if len(req.Query) > maxQueryLen {
+		rest.Error(w, fmt.Sprintf("Max query length is %d", maxQueryLen), 400)
+		return
+	}
 
 	resp, err := translation.Translate(req)
 	if err != nil {
@@ -84,6 +93,10 @@ func suggestions(w rest.ResponseWriter, r *rest.Request) {
 	}
 	if req.Locales == nil {
 		rest.Error(w, "locales required", 400)
+		return
+	}
+	if len(req.Query) > maxQueryLen {
+		rest.Error(w, fmt.Sprintf("Max query length is %d", maxQueryLen), 400)
 		return
 	}
 
